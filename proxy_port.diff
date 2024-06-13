@@ -1,0 +1,108 @@
+diff --git a/packages/ee/pieces/microsoft-dynamics-crm/src/index.ts b/packages/ee/pieces/microsoft-dynamics-crm/src/index.ts
+index c68bf9dcef643b8b011a1c3ae739e2ab2b998a14..1564322dc53cbaa047bafca335f89393fa82c26e 100644
+--- a/packages/ee/pieces/microsoft-dynamics-crm/src/index.ts
++++ b/packages/ee/pieces/microsoft-dynamics-crm/src/index.ts
+@@ -18,7 +18,13 @@ export const dynamicsCRMAuth = PieceAuth.OAuth2({
+         'Host URL without trailing slash.For example **https://demo.crm.dynamics.com**',
+       required: true,
+     }),
+-    tenatId: Property.ShortText({
++    proxyPort: Property.Number({
++      displayName: 'Proxy Port',
++      description:
++        'Port to use for establishing connections (only needed when proxying requests)',
++      required: false,
++    }),
++    tenantId: Property.ShortText({
+       displayName: 'Tenant ID',
+       description: 'You can find this in the Azure portal.',
+       defaultValue: 'common',
+@@ -33,10 +39,18 @@ export const dynamicsCRMAuth = PieceAuth.OAuth2({
+     'profile',
+     'offline_access',
+   ],
+-  authUrl: 'https://login.microsoftonline.com/{tenatId}/oauth2/v2.0/authorize',
+-  tokenUrl: 'https://login.microsoftonline.com/{tenatId}/oauth2/v2.0/token',
++  authUrl: 'https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/authorize',
++  tokenUrl: 'https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/token',
+ });
+ 
++export function getBaseUrl(host: string, port?: number): string {
++  let portStr = '';
++  if (port) {
++    portStr = `:${port}`;
++  }
++  return `${host}${portStr}`;
++}
++
+ export const microsoftDynamicsCrm = createPiece({
+   displayName: 'Microsoft Dynamics CRM',
+   auth: dynamicsCRMAuth,
+@@ -51,9 +65,8 @@ export const microsoftDynamicsCrm = createPiece({
+     createCustomApiCallAction({
+       auth: dynamicsCRMAuth,
+       baseUrl: (auth) => {
+-        return `${
+-          (auth as OAuth2PropertyValue).props?.['hostUrl']
+-        }/api/data/v9.2`;
++        const props = (auth as OAuth2PropertyValue).props as { hostUrl: string, proxyPort: number };
++        return `${getBaseUrl(props?.['hostUrl'], props.proxyPort)}/api/data/v9.2`;
+       },
+       authMapping: (auth) => ({
+         Authorization: `Bearer  ${(auth as OAuth2PropertyValue).access_token}`,
+diff --git a/packages/ee/pieces/microsoft-dynamics-crm/src/lib/common/client.ts b/packages/ee/pieces/microsoft-dynamics-crm/src/lib/common/client.ts
+index 88460e26fda7905853cd0a834f530291556fef48..6856195e1486e9ab07e614cc39cd2753934b718a 100644
+--- a/packages/ee/pieces/microsoft-dynamics-crm/src/lib/common/client.ts
++++ b/packages/ee/pieces/microsoft-dynamics-crm/src/lib/common/client.ts
+@@ -11,9 +11,10 @@ import {
+   EntityAttributeOptionsResponse,
+   EntityAttributeResponse,
+ } from './types';
++import { getBaseUrl } from '../..';
+ 
+ export class DynamicsCRMClient {
+-  constructor(private hostUrl: string, private accessToken: string) {}
++  constructor(private hostUrl: string, private accessToken: string, private port?: number) {}
+   async makeRequest<T extends HttpMessageBody>(
+     method: HttpMethod,
+     resourceUri: string,
+@@ -21,7 +22,7 @@ export class DynamicsCRMClient {
+     query?: QueryParams,
+     body: any | undefined = undefined
+   ): Promise<T> {
+-    const baseUrl = this.hostUrl.replace(/\/$/, '');
++    const baseUrl = getBaseUrl(this.hostUrl.replace(/\/$/, ''), this.port);
+     const res = await httpClient.sendRequest<T>({
+       method: method,
+       url: `${baseUrl}/api/data/v9.2` + resourceUri,
+diff --git a/packages/ee/pieces/microsoft-dynamics-crm/src/lib/common/index.ts b/packages/ee/pieces/microsoft-dynamics-crm/src/lib/common/index.ts
+index a63a0bf175ad33aac6ae2dcd5c4834243547c2fe..40641650a7fe5509806d28eb399b58e7588fc46d 100644
+--- a/packages/ee/pieces/microsoft-dynamics-crm/src/lib/common/index.ts
++++ b/packages/ee/pieces/microsoft-dynamics-crm/src/lib/common/index.ts
+@@ -9,14 +9,15 @@ import {
+   PiecePropValueSchema,
+   Property,
+ } from '@activepieces/pieces-framework';
+-import { dynamicsCRMAuth } from '../../';
++import { dynamicsCRMAuth, getBaseUrl } from '../../';
+ import { DynamicsCRMClient } from './client';
+ import { EntityAttributeType, EntityDetails } from './constants';
+ 
+ export function makeClient(auth: PiecePropValueSchema<typeof dynamicsCRMAuth>) {
+   const client = new DynamicsCRMClient(
+     auth.props?.['hostUrl'],
+-    auth.access_token
++    auth.access_token,
++    auth.props?.['proxyPort'],
+   );
+   return client;
+ }
+@@ -68,7 +69,7 @@ export const DynamicsCRMCommon = {
+ 
+       const request: HttpRequest = {
+         method: HttpMethod.GET,
+-        url: `${authValue.props?.['hostUrl']}/api/data/v9.2/${entityUrlPath}`,
++        url: `${getBaseUrl(authValue.props?.['hostUrl'], authValue.props?.['proxyPort'])}/api/data/v9.2/${entityUrlPath}`,
+         queryParams: {
+           $select: entityprimaryNameAttribute,
+         },

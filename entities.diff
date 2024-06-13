@@ -1,0 +1,536 @@
+diff --git a/packages/ee/pieces/microsoft-dynamics-crm/src/lib/actions/create-record.ts b/packages/ee/pieces/microsoft-dynamics-crm/src/lib/actions/create-record.ts
+index e17810db1d6f469d7004b30198e042f098c1d570..17d6955c2731c441909066408e8c47eca5799459 100644
+--- a/packages/ee/pieces/microsoft-dynamics-crm/src/lib/actions/create-record.ts
++++ b/packages/ee/pieces/microsoft-dynamics-crm/src/lib/actions/create-record.ts
+@@ -4,7 +4,6 @@ import {
+ } from '@activepieces/pieces-framework';
+ import { dynamicsCRMAuth } from '../../';
+ import { DynamicsCRMCommon, makeClient } from '../common';
+-import { EntityDetails } from '../common/constants';
+ 
+ export const createRecordAction = createAction({
+   auth: dynamicsCRMAuth,
+@@ -20,7 +19,7 @@ export const createRecordAction = createAction({
+   async run(context) {
+     const { entityType, fields } = context.propsValue;
+ 
+-    const entityUrlPath = EntityDetails[entityType].urlPath;
++    const entityUrlPath = entityType as string;
+ 
+     const client = makeClient(
+       context.auth as PiecePropValueSchema<typeof dynamicsCRMAuth>
+diff --git a/packages/ee/pieces/microsoft-dynamics-crm/src/lib/actions/delete-record.ts b/packages/ee/pieces/microsoft-dynamics-crm/src/lib/actions/delete-record.ts
+index d813cd516ffbf59632f678b667f8b18b2dc1e765..e332057409f0dccd2edb5c86ed49ee466390c1ca 100644
+--- a/packages/ee/pieces/microsoft-dynamics-crm/src/lib/actions/delete-record.ts
++++ b/packages/ee/pieces/microsoft-dynamics-crm/src/lib/actions/delete-record.ts
+@@ -4,7 +4,6 @@ import {
+ } from '@activepieces/pieces-framework';
+ import { dynamicsCRMAuth } from '../../';
+ import { DynamicsCRMCommon, makeClient } from '../common';
+-import { EntityDetails } from '../common/constants';
+ 
+ export const deleteRecordAction = createAction({
+   auth: dynamicsCRMAuth,
+@@ -20,7 +19,7 @@ export const deleteRecordAction = createAction({
+   async run(context) {
+     const { entityType, recordId } = context.propsValue;
+ 
+-    const entityUrlPath = EntityDetails[entityType].urlPath;
++    const entityUrlPath = entityType as string;
+ 
+     const client = makeClient(
+       context.auth as PiecePropValueSchema<typeof dynamicsCRMAuth>
+diff --git a/packages/ee/pieces/microsoft-dynamics-crm/src/lib/actions/get-record.ts b/packages/ee/pieces/microsoft-dynamics-crm/src/lib/actions/get-record.ts
+index d53de58a550cd6eb8eec08d82093bebded82da8b..75f035639aa2b301d975552542d40dc229911b13 100644
+--- a/packages/ee/pieces/microsoft-dynamics-crm/src/lib/actions/get-record.ts
++++ b/packages/ee/pieces/microsoft-dynamics-crm/src/lib/actions/get-record.ts
+@@ -4,7 +4,6 @@ import {
+ } from '@activepieces/pieces-framework';
+ import { dynamicsCRMAuth } from '../../';
+ import { DynamicsCRMCommon, makeClient } from '../common';
+-import { EntityDetails } from '../common/constants';
+ 
+ export const getRecordAction = createAction({
+   auth: dynamicsCRMAuth,
+@@ -20,7 +19,7 @@ export const getRecordAction = createAction({
+   async run(context) {
+     const { entityType, recordId } = context.propsValue;
+ 
+-    const entityUrlPath = EntityDetails[entityType].urlPath;
++    const entityUrlPath = entityType as string;
+ 
+     const client = makeClient(
+       context.auth as PiecePropValueSchema<typeof dynamicsCRMAuth>
+diff --git a/packages/ee/pieces/microsoft-dynamics-crm/src/lib/actions/update-record.ts b/packages/ee/pieces/microsoft-dynamics-crm/src/lib/actions/update-record.ts
+index fe271827f22bf018b3450e325be4b67fb735573b..ae17c50c706bd745e6aba9e5a1b48f625beb9a75 100644
+--- a/packages/ee/pieces/microsoft-dynamics-crm/src/lib/actions/update-record.ts
++++ b/packages/ee/pieces/microsoft-dynamics-crm/src/lib/actions/update-record.ts
+@@ -4,7 +4,6 @@ import {
+ } from '@activepieces/pieces-framework';
+ import { dynamicsCRMAuth } from '../../';
+ import { DynamicsCRMCommon, makeClient } from '../common';
+-import { EntityDetails } from '../common/constants';
+ 
+ export const updateRecordAction = createAction({
+   auth: dynamicsCRMAuth,
+@@ -21,7 +20,7 @@ export const updateRecordAction = createAction({
+   async run(context) {
+     const { entityType, recordId, fields } = context.propsValue;
+ 
+-    const entityUrlPath = EntityDetails[entityType].urlPath;
++    const entityUrlPath = entityType as string;
+ 
+     const client = makeClient(
+       context.auth as PiecePropValueSchema<typeof dynamicsCRMAuth>
+diff --git a/packages/ee/pieces/microsoft-dynamics-crm/src/lib/common/client.ts b/packages/ee/pieces/microsoft-dynamics-crm/src/lib/common/client.ts
+index 6856195e1486e9ab07e614cc39cd2753934b718a..1311bc7e3b3f365c296d955ed646aa17711e0e00 100644
+--- a/packages/ee/pieces/microsoft-dynamics-crm/src/lib/common/client.ts
++++ b/packages/ee/pieces/microsoft-dynamics-crm/src/lib/common/client.ts
+@@ -10,6 +10,8 @@ import { EntityAttributeType } from './constants';
+ import {
+   EntityAttributeOptionsResponse,
+   EntityAttributeResponse,
++  EntityTypeAttributesResponse,
++  EntityTypeResponse,
+ } from './types';
+ import { getBaseUrl } from '../..';
+ 
+@@ -88,6 +90,38 @@ export class DynamicsCRMClient {
+       `/${entityUrlPath}(${recordId})`
+     );
+   }
++  async fetchEntityTypes(
++  ): Promise<EntityTypeResponse> {
++    // fetch entity type data
++    return await this.makeRequest<EntityTypeResponse>(
++      HttpMethod.GET,
++      `/EntityDefinitions`,
++      undefined,
++      {
++        $select: [
++          'EntitySetName',
++          'LogicalName',
++        ].join(','),
++      }
++    );
++  }
++  async fetchEntityTypeAttributes(
++    entitySetName: string
++  ): Promise<EntityTypeAttributesResponse> {
++    return await this.makeRequest<EntityTypeAttributesResponse>(
++      HttpMethod.GET,
++      `/EntityDefinitions`,
++      undefined,
++      {
++        $select: [
++          'PrimaryIdAttribute',
++          'PrimaryNameAttribute',
++          'LogicalName',
++        ].join(','),
++        $filter: `EntitySetName eq '${entitySetName}'`,
++      }
++    );
++  }
+   async fetchEntityAttributes(
+     entityName: string
+   ): Promise<EntityAttributeResponse> {
+diff --git a/packages/ee/pieces/microsoft-dynamics-crm/src/lib/common/constants.ts b/packages/ee/pieces/microsoft-dynamics-crm/src/lib/common/constants.ts
+index 49c0ea9782d5998b6ac4317da58f311385fcf6a7..1337810faec2320dea46e32aac3bb19d4974f6c5 100644
+--- a/packages/ee/pieces/microsoft-dynamics-crm/src/lib/common/constants.ts
++++ b/packages/ee/pieces/microsoft-dynamics-crm/src/lib/common/constants.ts
+@@ -1,247 +1,5 @@
+ // docs: https://learn.microsoft.com/en-us/previous-versions/dynamicscrm-2016/developers-guide/mt608066(v=crm.8)
+ 
+-export const EntityDetails: {
+-  [key: string]: {
+-    displayName: string;
+-    value: string;
+-    urlPath: string;
+-    primaryKey: string;
+-    primaryNameAttribute: string;
+-  };
+-} = {
+-  account: {
+-    displayName: 'Account',
+-    value: 'account',
+-    urlPath: 'accounts',
+-    primaryKey: 'accountid',
+-    primaryNameAttribute: 'name',
+-  },
+-  actioncard: {
+-    displayName: 'Action Card',
+-    value: 'actioncard',
+-    urlPath: 'actioncards',
+-    primaryKey: 'actioncardid',
+-    primaryNameAttribute: 'title',
+-  },
+-  actioncarduserstate: {
+-    displayName: 'ActionCardUserState',
+-    value: 'actioncarduserstate',
+-    urlPath: 'actioncarduserstates',
+-    primaryKey: 'actioncarduserstateid',
+-    primaryNameAttribute: 'actioncarduserstateid',
+-  },
+-  calendar: {
+-    displayName: 'Calendar',
+-    value: 'calendar',
+-    urlPath: 'calendars',
+-    primaryKey: 'calendarid',
+-    primaryNameAttribute: 'name',
+-  },
+-  contact: {
+-    displayName: 'Contact',
+-    value: 'contact',
+-    urlPath: 'contacts',
+-    primaryKey: 'contractid',
+-    primaryNameAttribute: 'fullname',
+-  },
+-  campaign: {
+-    displayName: 'Campaign',
+-    value: 'campaign',
+-    urlPath: 'campaigns',
+-    primaryKey: 'campaignid',
+-    primaryNameAttribute: 'name',
+-  },
+-  campaignactivity: {
+-    displayName: 'Campaign Activity',
+-    value: 'campaignactivity',
+-    urlPath: 'campaignactivities',
+-    primaryKey: 'activityid',
+-    primaryNameAttribute: 'subject',
+-  },
+-  campaignactivityitem: {
+-    displayName: 'Campaign Activity Item',
+-    value: 'campaignactivityitem',
+-    urlPath: 'campaignactivityitems',
+-    primaryKey: 'campaignactivityitemid',
+-    primaryNameAttribute: 'campaignactivityitemid ',
+-  },
+-  campaignitem: {
+-    displayName: 'Campaign Item',
+-    value: 'campaignitem',
+-    urlPath: 'campaignitems',
+-    primaryKey: 'campaignitemid',
+-    primaryNameAttribute: 'campaignitemid',
+-  },
+-  campaignresponse: {
+-    displayName: 'Campaign Response',
+-    value: 'campaignresponse',
+-    urlPath: 'campaignresponses',
+-    primaryKey: 'activityid',
+-    primaryNameAttribute: 'subject',
+-  },
+-  category: {
+-    displayName: 'Category',
+-    value: 'category',
+-    urlPath: 'categories',
+-    primaryKey: 'categoryid',
+-    primaryNameAttribute: 'title',
+-  },
+-  characteristic: {
+-    displayName: 'Characteristic',
+-    value: 'characteristic',
+-    urlPath: 'characteristics',
+-    primaryKey: 'characteristicid',
+-    primaryNameAttribute: 'name',
+-  },
+-  goal: {
+-    displayName: 'Goal',
+-    value: 'goal',
+-    urlPath: 'goals',
+-    primaryKey: 'goalid',
+-    primaryNameAttribute: 'title',
+-  },
+-  lead: {
+-    displayName: 'Lead',
+-    value: 'lead',
+-    urlPath: 'leads',
+-    primaryKey: 'leadid',
+-    primaryNameAttribute: 'fullname',
+-  },
+-  incident: {
+-    displayName: 'Case / Incident',
+-    value: 'incident',
+-    urlPath: 'incidents',
+-    primaryKey: 'incidentid',
+-    primaryNameAttribute: 'title',
+-  },
+-  invoice: {
+-    displayName: 'Invoice',
+-    value: 'invoice',
+-    urlPath: 'invoices',
+-    primaryKey: 'invoiceid',
+-    primaryNameAttribute: 'name',
+-  },
+-  invoicedetail: {
+-    displayName: 'Invoice Product',
+-    value: 'invoicedetail',
+-    urlPath: 'invoicedetails',
+-    primaryKey: 'invoicedetailid',
+-    primaryNameAttribute: 'productidname',
+-  },
+-  kbarticle: {
+-    displayName: 'Article',
+-    value: 'kbarticle',
+-    urlPath: 'kbarticles',
+-    primaryKey: 'kbarticleid',
+-    primaryNameAttribute: 'title',
+-  },
+-  kbarticlecomment: {
+-    displayName: 'Article Comment',
+-    value: 'kbarticlecomment',
+-    urlPath: 'kbarticlecomments',
+-    primaryKey: 'kbarticlecommentid',
+-    primaryNameAttribute: 'title',
+-  },
+-  list: {
+-    displayName: 'Marketing List',
+-    value: 'list',
+-    urlPath: 'lists',
+-    primaryKey: 'listid',
+-    primaryNameAttribute: 'listname',
+-  },
+-  listmember: {
+-    displayName: 'Marketing List Member',
+-    value: 'listmember',
+-    urlPath: 'listmembers',
+-    primaryKey: 'listmemberid',
+-    primaryNameAttribute: 'listmemberid',
+-  },
+-  feedback: {
+-    displayName: 'Feedback',
+-    value: 'feedback',
+-    urlPath: 'feedback',
+-    primaryKey: 'feedbackid',
+-    primaryNameAttribute: 'title',
+-  },
+-  opportunity: {
+-    displayName: 'Opportunity',
+-    value: 'opportunity',
+-    urlPath: 'opportunities',
+-    primaryKey: 'opportunityid',
+-    primaryNameAttribute: 'name',
+-  },
+-  organization: {
+-    displayName: 'Organization',
+-    value: 'organization',
+-    urlPath: 'organizations',
+-    primaryKey: 'organizationid',
+-    primaryNameAttribute: 'name',
+-  },
+-  post: {
+-    displayName: 'Post',
+-    value: 'post',
+-    urlPath: 'posts',
+-    primaryKey: 'postid',
+-    primaryNameAttribute: 'text',
+-  },
+-  postcomment: {
+-    displayName: 'Post Comment',
+-    value: 'postcomment',
+-    urlPath: 'postcomments',
+-    primaryKey: 'postcommentid',
+-    primaryNameAttribute: 'text',
+-  },
+-  product: {
+-    displayName: 'Product',
+-    value: 'product',
+-    urlPath: 'products',
+-    primaryKey: 'productid',
+-    primaryNameAttribute: 'name',
+-  },
+-  publisher: {
+-    displayName: 'Publisher',
+-    value: 'publisher',
+-    urlPath: 'publishers',
+-    primaryKey: 'publisherid',
+-    primaryNameAttribute: 'friendlyname',
+-  },
+-  quote: {
+-    displayName: 'Quote',
+-    value: 'quote',
+-    urlPath: 'quotes',
+-    primaryKey: 'quoteid',
+-    primaryNameAttribute: 'name',
+-  },
+-  quotedetail: {
+-    displayName: 'Quote Product',
+-    value: 'quotedetail',
+-    urlPath: 'quotedetails',
+-    primaryKey: 'quotedetailid',
+-    primaryNameAttribute: 'productidname',
+-  },
+-  salesorder: {
+-    displayName: 'Order',
+-    value: 'salesorder',
+-    urlPath: 'salesorders',
+-    primaryKey: 'salesorderid',
+-    primaryNameAttribute: 'name',
+-  },
+-  salesorderdetail: {
+-    displayName: 'Order Product',
+-    value: 'salesorderdetail',
+-    urlPath: 'salesorderdetails',
+-    primaryKey: 'salesorderdetailid',
+-    primaryNameAttribute: 'productidname',
+-  },
+-  task: {
+-    displayName: 'Task',
+-    value: 'task',
+-    urlPath: 'tasks',
+-    primaryKey: 'activityid',
+-    primaryNameAttribute: 'subject',
+-  },
+-};
+-
+ export enum EntityAttributeType {
+   PICKLIST = 'Picklist',
+   VIRTUAL = 'Virtual',
+@@ -260,4 +18,4 @@ export enum EntityAttributeType {
+   ENTITY_NAME = 'EntityName',
+   STATE = 'State',
+   STATUS = 'Status',
+-}
++}
+\ No newline at end of file
+diff --git a/packages/ee/pieces/microsoft-dynamics-crm/src/lib/common/index.ts b/packages/ee/pieces/microsoft-dynamics-crm/src/lib/common/index.ts
+index 40641650a7fe5509806d28eb399b58e7588fc46d..058b81d2a1fe443746d0450edb47cca5ebfb6221 100644
+--- a/packages/ee/pieces/microsoft-dynamics-crm/src/lib/common/index.ts
++++ b/packages/ee/pieces/microsoft-dynamics-crm/src/lib/common/index.ts
+@@ -11,7 +11,7 @@ import {
+ } from '@activepieces/pieces-framework';
+ import { dynamicsCRMAuth, getBaseUrl } from '../../';
+ import { DynamicsCRMClient } from './client';
+-import { EntityAttributeType, EntityDetails } from './constants';
++import { EntityAttributeType } from './constants';
+ 
+ export function makeClient(auth: PiecePropValueSchema<typeof dynamicsCRMAuth>) {
+   const client = new DynamicsCRMClient(
+@@ -24,18 +24,35 @@ export function makeClient(auth: PiecePropValueSchema<typeof dynamicsCRMAuth>) {
+ 
+ export const DynamicsCRMCommon = {
+   entityType: (description: string) =>
+-    Property.StaticDropdown({
++    Property.Dropdown({
+       displayName: 'Entity Type',
++      refreshers: [],
+       description,
+       required: true,
+-      options: {
+-        disabled: false,
+-        options: Object.keys(EntityDetails).map((key) => {
++      options: async ({ auth }) => {
++        if (!auth) {
+           return {
+-            label: EntityDetails[key].displayName,
+-            value: EntityDetails[key].value,
++            disabled: true,
++            options: [],
++            placeholder: '',
+           };
+-        }),
++        }
++
++        const client = makeClient(
++          auth as PiecePropValueSchema<typeof dynamicsCRMAuth>
++        );
++
++        const res = await client.fetchEntityTypes();
++
++        return {
++          disabled: false,
++          options: res.value.map((val) => {
++            return {
++              label: val.EntitySetName,
++              value: val.EntitySetName,
++            };
++          }),
++        };
+       },
+     }),
+   recordId: Property.Dropdown({
+@@ -51,10 +68,23 @@ export const DynamicsCRMCommon = {
+         };
+       }
+ 
+-      const entityUrlPath = EntityDetails[entityType as string].urlPath;
+-      const entityPrimaryKey = EntityDetails[entityType as string].primaryKey;
+-      const entityprimaryNameAttribute =
+-        EntityDetails[entityType as string].primaryNameAttribute;
++      const client = makeClient(
++        auth as PiecePropValueSchema<typeof dynamicsCRMAuth>
++      );
++
++      const res = await client.fetchEntityTypeAttributes(entityType as string);
++
++      if (!res.value[0]) {
++        return {
++          disabled: true,
++          options: [],
++          placeholder: 'Please select entity type first.',
++        };
++      }
++
++      const entityUrlPath = entityType as string;
++      const entityPrimaryKey = res.value[0].PrimaryIdAttribute;
++      const entityprimaryNameAttribute = res.value[0].PrimaryNameAttribute;
+ 
+       const authValue = auth as PiecePropValueSchema<typeof dynamicsCRMAuth>;
+ 
+@@ -113,8 +143,18 @@ export const DynamicsCRMCommon = {
+           auth as PiecePropValueSchema<typeof dynamicsCRMAuth>
+         );
+ 
++        const typeRes = await client.fetchEntityTypeAttributes(entityType as unknown as string);
++
++        if (!typeRes.value[0]) {
++          return {
++            disabled: true,
++            options: [],
++            placeholder: 'Please select entity type first.',
++          };
++        }
++
+         const res = await client.fetchEntityAttributes(
+-          entityType as unknown as string
++          typeRes.value[0].LogicalName
+         );
+ 
+         for (const field of res.value) {
+@@ -157,7 +197,7 @@ export const DynamicsCRMCommon = {
+               case EntityAttributeType.STATE:
+               case EntityAttributeType.STATUS: {
+                 const options = await client.fetchOptionFieldValues(
+-                  entityType as unknown as string,
++                  typeRes.value[0].LogicalName,
+                   field.LogicalName,
+                   field.AttributeType
+                 );
+diff --git a/packages/ee/pieces/microsoft-dynamics-crm/src/lib/common/types.ts b/packages/ee/pieces/microsoft-dynamics-crm/src/lib/common/types.ts
+index 65bbcec70d48335a7c9ab1eebf1602429dab0f0e..2c4c90938753e215b28dc33cdc96dd30cf13ef8c 100644
+--- a/packages/ee/pieces/microsoft-dynamics-crm/src/lib/common/types.ts
++++ b/packages/ee/pieces/microsoft-dynamics-crm/src/lib/common/types.ts
+@@ -1,5 +1,23 @@
+ import { EntityAttributeType } from './constants';
+ 
++export type EntityTypeResponse = {
++  '@odata.context': string;
++  value: {
++    '@odata.type': string;
++    LogicalName: string;
++    EntitySetName: string;
++  }[];
++};
++
++export type EntityTypeAttributesResponse = {
++  '@odata.context': string;
++  value: {
++    '@odata.type': string;
++    PrimaryIdAttribute: string;
++    PrimaryNameAttribute: string;
++    LogicalName: string;
++  }[];
++};
+ export type EntityAttributeResponse = {
+   '@odata.context': string;
+   value: {
