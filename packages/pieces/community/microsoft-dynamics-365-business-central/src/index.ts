@@ -35,7 +35,7 @@ export const microsoftDynamics365BusinessCentral = createPiece({
   displayName: 'Microsoft Dynamics 365 Business Central',
   auth: businessCentralAuth,
   description: 'All-in-one business management solution by Microsoft.',
-  categories: [PieceCategory.PREMIUM, PieceCategory.SALES_AND_CRM],
+  categories: [PieceCategory.SALES_AND_CRM],
   minimumSupportedRelease: '0.27.1',
   logoUrl:
     'https://cdn.activepieces.com/pieces/microsoft-dynamics-365-business-central.png',
@@ -49,8 +49,9 @@ export const microsoftDynamics365BusinessCentral = createPiece({
     createCustomApiCallAction({
       auth: businessCentralAuth,
       baseUrl: (auth) => {
-        return `https://api.businesscentral.dynamics.com/v2.0/${(auth as OAuth2PropertyValue).props?.['environment']
-          }/api/v2.0`;
+        return `https://api.businesscentral.dynamics.com/v2.0/${
+          (auth as OAuth2PropertyValue).props?.['environment']
+        }/api/v2.0`;
       },
       authMapping: (auth) => ({
         Authorization: `Bearer  ${(auth as OAuth2PropertyValue).access_token}`,
