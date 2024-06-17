@@ -16,6 +16,14 @@ export const ACTION_ENTITY_DROPDOWN_OPTIONS = [
     value: 'customers',
   },
   {
+    label: 'Customer Payments',
+    value: 'customerPayments',
+  },
+  {
+    label: 'Customer Payment Journals',
+    value: 'customerPaymentJournals',
+  },
+  {
     label: 'Dispute Status',
     value: 'disputeStatus',
   },

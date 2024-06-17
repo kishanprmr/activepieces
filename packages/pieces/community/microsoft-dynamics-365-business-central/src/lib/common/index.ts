@@ -45,6 +45,11 @@ import { EntityProp } from './types';
 import { salesInvoicesEntityProps } from './props/salesInvoices.entity';
 import { salesOrdersEntityProps } from './props/salesOrders.entity';
 import { salesQuotesEntityProps } from './props/salesQuotes.entity';
+import { customerPaymentJournalsEntityProps } from './props/customerPaymentJournals.entity';
+import {
+  customerPaymentsEntityNumberProps,
+  customerPaymentsEntityProps,
+} from './props/customerPayments.entity';
 
 export const commonProps = {
   company_id: Property.Dropdown({
@@ -259,6 +264,9 @@ export function formatRecordFields(
 ) {
   const numberFields = [];
   switch (recordType) {
+    case 'customerPayments':
+      numberFields.push(...customerPaymentsEntityNumberProps);
+      break;
     case 'currencies':
       numberFields.push(...currenciesEntityNumberProps);
       break;
@@ -315,6 +323,12 @@ export function getEntityPropSchema(recordType: string): EntityProp[] {
       break;
     case 'customers':
       entitySchema = customersEntityProps;
+      break;
+    case 'customerPayments':
+      entitySchema = customerPaymentsEntityProps;
+      break;
+    case 'customerPaymentJournals':
+      entitySchema = customerPaymentJournalsEntityProps;
       break;
     case 'disputeStatus':
       entitySchema = disputeStatusEntityProps;

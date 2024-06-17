@@ -34,6 +34,10 @@ export const updateRecordAction = createAction({
     let endpoint;
 
     switch (recordType) {
+      case 'customerPayments':
+        endpoint = `/companies(${companyId})/customerPaymentJournals(${recordFields['customerPaymentJournalId']})/${recordType}`;
+        delete formattedRecordFields['customerPaymentJournalId'];
+        break;
       case 'itemVariants':
         endpoint = `/companies(${companyId})/items(${recordFields['itemId']})/${recordType}(${recordId})`;
         delete formattedRecordFields['itemId'];
