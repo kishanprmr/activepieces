@@ -3,6 +3,7 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { DashboardContainerComponent } from './dashboard-container.component';
 import {
   ApDatePipe,
+  ApFilterComponent,
   DropdownSearchControlComponent,
   SelectAllDirective,
   UiCommonModule,
@@ -31,7 +32,6 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { NewConnectionDialogComponent } from './components/dialogs/new-connection-dialog/new-connection-dialog.component';
 import { UiFeatureConnectionsModule } from '@activepieces/ui/feature-connections';
-import { ContactSalesComponent } from './components/contact-sales/contact-sales.component';
 import { FormsModule } from '@angular/forms';
 import {
   PushFlowToGitButtonComponent,
@@ -39,9 +39,10 @@ import {
 } from '@activepieces/ui-feature-git-sync';
 import { RewardsDialogComponent } from './components/dialogs/rewards-dialog/rewards-dialog.component';
 import { NewAlertDialogComponent } from './components/dialogs/new-alert-dialog/new-alert-dialog.component';
+import { RequestTrialButtonComponent } from './components/request-trial-button/request-trial-button.component';
 import { AdminConsoleButtonComponent } from './components/admin-console-button/admin-console-button.component';
 import { InviteUserButtonComponent } from './components/invite-user-button/invite-user-button.component';
-
+import { FlowActionsListComponent } from '@activepieces/ui-feature-flow-actions-list';
 @NgModule({
   imports: [
     CommonModule,
@@ -66,8 +67,11 @@ import { InviteUserButtonComponent } from './components/invite-user-button/invit
     DropdownSearchControlComponent,
     SelectAllDirective,
     ApDatePipe,
+    RequestTrialButtonComponent,
     AdminConsoleButtonComponent,
     InviteUserButtonComponent,
+    FlowActionsListComponent,
+    ApFilterComponent,
   ],
   declarations: [
     DashboardContainerComponent,
@@ -81,7 +85,6 @@ import { InviteUserButtonComponent } from './components/invite-user-button/invit
     ProjectSwitcherComponent,
     RenameFlowDialogComponent,
     NewConnectionDialogComponent,
-    ContactSalesComponent,
     NewAlertDialogComponent,
   ],
   providers: [DatePipe],

@@ -15,7 +15,8 @@ export type FeatureKey =
   | 'AUDIT_LOGS'
   | 'GIT_SYNC'
   | 'ISSUES'
-  | 'ALERTS';
+  | 'ALERTS'
+  | 'ENTERPRISE_PIECES';
 export const unexpectedErrorMessage = $localize`An unexpected error occurred, please contact support`;
 export const codeGeneratorTooltip = $localize`Write code with assistance from AI`;
 export const disabledCodeGeneratorTooltip = $localize`Configure api key in the environment variables to generate code using AI`;
@@ -55,7 +56,7 @@ export const flowActionsUiInfo = {
   },
   iconSizeTailWind: 'ap-w-[20px] ap-h-[20px]',
 };
-
+export const unpermittedTooltip = $localize`Permission needed`;
 export const flowDeleteNoteWithGit = $localize`This will permanently delete the flow, all its data and any background runs.
 You can't undo this action including git branch.`;
 export const flowDeleteNote = $localize`This will permanently delete the flow, all its data and any background runs.`;

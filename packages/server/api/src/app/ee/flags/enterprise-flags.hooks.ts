@@ -1,9 +1,9 @@
+import { ApFlagId, isNil, ThirdPartyAuthnProviderEnum } from '@activepieces/shared'
 import { flagService } from '../../flags/flag.service'
 import { FlagsServiceHooks } from '../../flags/flags.hooks'
 import { resolvePlatformIdForRequest } from '../../platform/platform-utils'
 import { platformService } from '../../platform/platform.service'
 import { appearanceHelper } from '../helper/appearance-helper'
-import { ApFlagId, isNil, ThirdPartyAuthnProviderEnum } from '@activepieces/shared'
 
 export const enterpriseFlagsHooks: FlagsServiceHooks = {
     async modify({ flags, request }) {
@@ -28,6 +28,7 @@ export const enterpriseFlagsHooks: FlagsServiceHooks = {
         }
         modifiedFlags[ApFlagId.EMAIL_AUTH_ENABLED] = platform.emailAuthEnabled
         const isCustomerPlatform = !flagService.isCloudPlatform(platformId)
+        modifiedFlags[ApFlagId.IS_CLOUD_PLATFORM] = !isCustomerPlatform
         if (isCustomerPlatform) {
             modifiedFlags[ApFlagId.SHOW_PLATFORM_DEMO] = false
             modifiedFlags[ApFlagId.THEME] = await appearanceHelper.getTheme({

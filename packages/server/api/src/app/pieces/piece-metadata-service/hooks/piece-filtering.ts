@@ -1,8 +1,8 @@
+import { ActionBase, TriggerBase } from '@activepieces/pieces-framework'
+import { isNil, PieceCategory, PlatformId, SuggestionType } from '@activepieces/shared'
 import Fuse from 'fuse.js'
 import { platformService } from '../../../platform/platform.service'
 import { PieceMetadataSchema } from '../../piece-metadata-entity'
-import { ActionBase, TriggerBase } from '@activepieces/pieces-framework'
-import { isNil, PieceCategory, PlatformId, SuggestionType } from '@activepieces/shared'
 
 
 const pieceFilterKeys = [{
@@ -27,14 +27,13 @@ export const filterPiecesBasedUser = async ({
     suggestionType?: SuggestionType
     platformId?: PlatformId
 }): Promise<PieceMetadataSchema[]> => {
-
     return filterPiecesBasedOnFeatures(platformId, filterBasedOnCategories({
         categories,
         pieces: filterBasedOnSearchQuery({ searchQuery, pieces, suggestionType }),
     }))
 }
 
-export const filterPiecesBasedOnPremiumPlatform = async ({
+export const filterPiecesBasedOnEmbedding = async ({
     platformId,
     pieces,
 }: {
@@ -48,10 +47,14 @@ export const filterPiecesBasedOnPremiumPlatform = async ({
     if (isNil(platform)) {
         return pieces
     }
-    const platformPremiumPieces = platform.premiumPieces
-    const standardPieces = pieces.filter(piece => !piece.categories?.includes(PieceCategory.PREMIUM))
-    const premiumPieces = pieces.filter(piece => platformPremiumPieces.includes(piece.name))
-    return [...standardPieces, ...premiumPieces]
+    if (!platform.embeddingEnabled) {
+        return pieces
+    }
+
+    const isEnterprisePremiumPiece = (piece: PieceMetadataSchema) => piece.categories?.includes(PieceCategory.PREMIUM)
+    const isPieceEnabledForPlatform = (piece: PieceMetadataSchema) => isEnterprisePremiumPiece(piece) && platform.premiumPieces.includes(piece.name)
+
+    return pieces.filter(piece => !isEnterprisePremiumPiece(piece) || isPieceEnabledForPlatform(piece))
 }
 
 async function filterPiecesBasedOnFeatures(
@@ -93,11 +96,13 @@ const filterBasedOnSearchQuery = ({
         'triggers.displayName',
         'triggers.description',
     ]
+
     const fuse = new Fuse(putActionsAndTriggersInAnArray, {
         isCaseSensitive: false,
         shouldSort: true,
         keys: pieceWithTriggersAndActionsFilterKeys,
         threshold: 0.2,
+        distance: 250,
     })
 
     return fuse

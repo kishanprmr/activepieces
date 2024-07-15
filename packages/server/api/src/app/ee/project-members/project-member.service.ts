@@ -1,13 +1,3 @@
-import dayjs from 'dayjs'
-import { IsNull } from 'typeorm'
-import { repoFactory } from '../../core/db/repo-factory'
-import { buildPaginator } from '../../helper/pagination/build-paginator'
-import { paginationHelper } from '../../helper/pagination/pagination-utils'
-import { projectService } from '../../project/project-service'
-import { userService } from '../../user/user-service'
-import {
-    ProjectMemberEntity,
-} from './project-member.entity'
 import {
     ProjectMember,
     ProjectMemberId,
@@ -16,13 +6,21 @@ import {
 import {
     apId,
     Cursor,
-    isNil,
     PlatformRole,
     ProjectId,
     ProjectMemberRole,
     SeekPage,
     UserId,
 } from '@activepieces/shared'
+import dayjs from 'dayjs'
+import { repoFactory } from '../../core/db/repo-factory'
+import { buildPaginator } from '../../helper/pagination/build-paginator'
+import { paginationHelper } from '../../helper/pagination/pagination-utils'
+import { projectService } from '../../project/project-service'
+import { userService } from '../../user/user-service'
+import {
+    ProjectMemberEntity,
+} from './project-member.entity'
 
 const repo = repoFactory(ProjectMemberEntity)
 
@@ -36,7 +34,7 @@ export const projectMemberService = {
         const existingProjectMember = await repo().findOneBy({
             projectId,
             userId,
-            platformId: isNil(platformId) ? IsNull() : platformId,
+            platformId,
         })
         const projectMemberId = existingProjectMember?.id ?? apId()
 
@@ -95,6 +93,9 @@ export const projectMemberService = {
         const user = await userService.getOneOrFail({
             id: userId,
         })
+        if (user.id === project.ownerId) {
+            return ProjectMemberRole.ADMIN
+        }
         if (project.platformId === user.platformId && user.platformRole === PlatformRole.ADMIN) {
             return ProjectMemberRole.ADMIN
         }

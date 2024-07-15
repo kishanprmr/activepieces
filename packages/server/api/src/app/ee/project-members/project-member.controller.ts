@@ -1,7 +1,3 @@
-import { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox'
-import { Type } from '@sinclair/typebox'
-import { StatusCodes } from 'http-status-codes'
-import { projectMemberService } from './project-member.service'
 import {
     ListProjectMembersRequestQuery,
     ProjectMember,
@@ -14,6 +10,10 @@ import {
     SeekPage,
     SERVICE_KEY_SECURITY_OPENAPI,
 } from '@activepieces/shared'
+import { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox'
+import { Type } from '@sinclair/typebox'
+import { StatusCodes } from 'http-status-codes'
+import { projectMemberService } from './project-member.service'
 
 const DEFAULT_LIMIT_SIZE = 10
 
@@ -87,7 +87,7 @@ const DeleteProjectMemberRequest = {
         tags: ['project-members'],
         security: [SERVICE_KEY_SECURITY_OPENAPI],
         response: {
-            [StatusCodes.NO_CONTENT]: Type.Undefined(),
+            [StatusCodes.NO_CONTENT]: Type.Never(),
         },
         params: Type.Object({
             id: Type.String(),
