@@ -85,7 +85,7 @@ export const getRowsAction = createAction({
   description: 'Get next group of rows from a Google Sheet',
   displayName: 'Get next row(s)',
   props: {
-    spreadsheet_id: googleSheetsCommon.spreadsheet_id,
+    spreadsheet_id: googleSheetsCommon.spreadsheet_id(),
     include_team_drives: googleSheetsCommon.include_team_drives,
     sheet_id: googleSheetsCommon.sheet_id,
     startRow: Property.Number({
@@ -113,11 +113,17 @@ export const getRowsAction = createAction({
     }),
   },
   async run({ store, auth, propsValue }) {
+    const spreadSheetId = propsValue.spreadsheet_id
+    if(!spreadSheetId)
+    {
+      throw new Error('No spreadsheet found.');
+    }
+
     try {
       return await getRows(
         store,
         auth['access_token'],
-        propsValue['spreadsheet_id'],
+        spreadSheetId,
         propsValue['sheet_id'],
         propsValue['memKey'],
         propsValue['groupSize'],
@@ -133,11 +139,16 @@ export const getRowsAction = createAction({
     }
   },
   async test({ store, auth, propsValue }) {
+    const spreadSheetId = propsValue.spreadsheet_id
+    if(!spreadSheetId)
+    {
+      throw new Error('No spreadsheet found.');
+    }
     try {
       return await getRows(
         store,
         auth['access_token'],
-        propsValue['spreadsheet_id'],
+        spreadSheetId,
         propsValue['sheet_id'],
         propsValue['memKey'],
         propsValue['groupSize'],

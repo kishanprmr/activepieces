@@ -17,7 +17,7 @@ export const findRowsAction = createAction({
     'Find or get rows in a Google Sheet by column name and search value',
   displayName: 'Find Rows',
   props: {
-    spreadsheet_id: googleSheetsCommon.spreadsheet_id,
+    spreadsheet_id: googleSheetsCommon.spreadsheet_id(),
     include_team_drives: googleSheetsCommon.include_team_drives,
     sheet_id: googleSheetsCommon.sheet_id,
     columnName: googleSheetsCommon.columnName,
@@ -50,7 +50,12 @@ export const findRowsAction = createAction({
     }),
   },
   async run({ propsValue, auth }) {
-    const spreadSheetId = propsValue.spreadsheet_id;
+    const spreadSheetId = propsValue.spreadsheet_id
+    if(!spreadSheetId)
+    {
+      throw new Error('No spreadsheet found.');
+    }
+
     const sheetId = propsValue.sheet_id;
     const startingRow = propsValue.startingRow ?? 1;
     const numberOfRowsToReturn = propsValue.numberOfRows ?? 1;

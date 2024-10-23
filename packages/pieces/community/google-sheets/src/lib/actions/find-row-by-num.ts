@@ -8,7 +8,7 @@ export const findRowByNumAction = createAction({
   description: 'Get a row in a Google Sheet by row number',
   displayName: 'Get Row',
   props: {
-    spreadsheet_id: googleSheetsCommon.spreadsheet_id,
+    spreadsheet_id: googleSheetsCommon.spreadsheet_id(),
     include_team_drives: googleSheetsCommon.include_team_drives,
     sheet_id: googleSheetsCommon.sheet_id,
     rowNumber: Property.Number({
@@ -18,16 +18,21 @@ export const findRowByNumAction = createAction({
     }),
   },
   async run({ propsValue, auth }) {
+    const spreadSheetId = propsValue.spreadsheet_id
+    if(!spreadSheetId)
+    {
+      throw new Error('No spreadsheet found.');
+    }
     const sheetName = await googleSheetsCommon.findSheetName(
       auth['access_token'],
-      propsValue['spreadsheet_id'],
+      spreadSheetId,
       propsValue['sheet_id']
     );
 
     const row = await getGoogleSheetRows({
       accessToken: auth['access_token'],
       sheetName: sheetName,
-      spreadSheetId: propsValue['spreadsheet_id'],
+      spreadSheetId,
       rowIndex_s: propsValue['rowNumber'],
       rowIndex_e: propsValue['rowNumber'],
     });

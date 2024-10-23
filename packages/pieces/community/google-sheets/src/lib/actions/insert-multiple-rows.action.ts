@@ -17,7 +17,7 @@ export const insertMultipleRowsAction = createAction({
 	displayName: 'Insert Multiple Rows',
 	description: 'Add one or more new rows in a specific spreadsheet.',
 	props: {
-		spreadsheet_id: googleSheetsCommon.spreadsheet_id,
+		spreadsheet_id: googleSheetsCommon.spreadsheet_id(),
 		include_team_drives: googleSheetsCommon.include_team_drives,
 		sheet_id: googleSheetsCommon.sheet_id,
 		as_string: Property.Checkbox({
@@ -77,6 +77,10 @@ export const insertMultipleRowsAction = createAction({
 
 	async run(context) {
 		const spreadSheetId = context.propsValue.spreadsheet_id;
+		if(!spreadSheetId)
+		{
+			throw new Error('No spreadsheet found.');
+		}
 		const sheetId = context.propsValue.sheet_id;
 		const rowValuesInput = context.propsValue.values['values'] as any[];
 

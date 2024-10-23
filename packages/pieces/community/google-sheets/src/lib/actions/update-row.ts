@@ -13,7 +13,7 @@ export const updateRowAction = createAction({
   description: 'Overwrite values in an existing row',
   displayName: 'Update Row',
   props: {
-    spreadsheet_id: googleSheetsCommon.spreadsheet_id,
+    spreadsheet_id: googleSheetsCommon.spreadsheet_id(),
     include_team_drives: googleSheetsCommon.include_team_drives,
     sheet_id: googleSheetsCommon.sheet_id,
     row_id: Property.Number({
@@ -31,6 +31,10 @@ export const updateRowAction = createAction({
   },
   async run(context) {
     const spreadSheetId = context.propsValue.spreadsheet_id;
+    if(!spreadSheetId)
+    {
+      throw new Error('No spreadsheet found.');
+    }
     const sheetId = context.propsValue.sheet_id;
     const rowId = context.propsValue.row_id;
     const idFirstRowHeaders = context.propsValue.first_row_headers;

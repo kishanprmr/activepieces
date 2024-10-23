@@ -17,9 +17,9 @@ export const googleSheetsCommon = {
     defaultValue: false,
     required: false,
   }),
-  spreadsheet_id: Property.Dropdown({
-    displayName: 'Spreadsheet',
-    required: true,
+  spreadsheet_id:(required = true,displayName='Spreadsheet')=> Property.Dropdown({
+    displayName,
+    required,
     refreshOnSearch: true,
     refreshers: ['include_team_drives'],
     options: async ({ auth, include_team_drives }, { searchValue }) => {

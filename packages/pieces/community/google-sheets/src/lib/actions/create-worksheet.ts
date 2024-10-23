@@ -10,7 +10,7 @@ export const createWorksheetAction = createAction({
   displayName: 'Create Worksheet',
   description:'Create a blank worksheet with a title.',
   props: {
-    spreadsheet_id: googleSheetsCommon.spreadsheet_id,
+    spreadsheet_id: googleSheetsCommon.spreadsheet_id(),
     include_team_drives: googleSheetsCommon.include_team_drives,
     title:Property.ShortText({
         displayName:'Title',

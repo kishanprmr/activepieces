@@ -1,6 +1,7 @@
 import { createAction, Property } from '@activepieces/pieces-framework';
 import { googleSheetsCommon } from '../common/common';
 import { googleSheetsAuth } from '../..';
+import { throws } from 'assert';
 
 export const clearSheetAction = createAction({
   auth: googleSheetsAuth,
@@ -8,7 +9,7 @@ export const clearSheetAction = createAction({
   description: 'Clears all rows on an existing sheet',
   displayName: 'Clear Sheet',
   props: {
-    spreadsheet_id: googleSheetsCommon.spreadsheet_id,
+    spreadsheet_id: googleSheetsCommon.spreadsheet_id(),
     include_team_drives: googleSheetsCommon.include_team_drives,
     sheet_id: googleSheetsCommon.sheet_id,
     is_first_row_headers: Property.Checkbox({
@@ -19,15 +20,20 @@ export const clearSheetAction = createAction({
     }),
   },
   async run({ propsValue, auth }) {
+    const spreadSheetId = propsValue.spreadsheet_id
+    if(!spreadSheetId)
+    {
+      throw new Error('No spreadsheet found.');
+    }
     await googleSheetsCommon.findSheetName(
       auth['access_token'],
-      propsValue['spreadsheet_id'],
+      spreadSheetId,
       propsValue['sheet_id']
     );
 
     const rowsToDelete: number[] = [];
     const values = await googleSheetsCommon.getValues(
-      propsValue.spreadsheet_id,
+      spreadSheetId,
       auth['access_token'],
       propsValue.sheet_id
     );
@@ -39,7 +45,7 @@ export const clearSheetAction = createAction({
     }
 
     const response = await googleSheetsCommon.clearSheet(
-      propsValue.spreadsheet_id,
+      spreadSheetId,
       propsValue.sheet_id,
       auth['access_token'],
       propsValue.is_first_row_headers ? 1 : 0,

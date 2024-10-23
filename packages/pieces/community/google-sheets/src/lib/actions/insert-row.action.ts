@@ -15,7 +15,7 @@ export const insertRowAction = createAction({
   description: 'Append a row of values to an existing sheet',
   displayName: 'Insert Row',
   props: {
-    spreadsheet_id: googleSheetsCommon.spreadsheet_id,
+    spreadsheet_id: googleSheetsCommon.spreadsheet_id(),
     include_team_drives: googleSheetsCommon.include_team_drives,
     sheet_id: googleSheetsCommon.sheet_id,
     as_string: Property.Checkbox({
@@ -34,9 +34,14 @@ export const insertRowAction = createAction({
   },
   async run({ propsValue, auth }) {
     const values = propsValue['values'];
+    const spreadSheetId = propsValue.spreadsheet_id
+    if(!spreadSheetId)
+    {
+      throw new Error('No spreadsheet found.');
+    }
     const sheetName = await googleSheetsCommon.findSheetName(
       auth['access_token'],
-      propsValue['spreadsheet_id'],
+      spreadSheetId,
       propsValue['sheet_id']
     );
     let formattedValues;
@@ -52,7 +57,7 @@ export const insertRowAction = createAction({
       accessToken: auth['access_token'],
       majorDimension: Dimension.COLUMNS,
       range: sheetName,
-      spreadSheetId: propsValue['spreadsheet_id'],
+      spreadSheetId: spreadSheetId,
       valueInputOption: propsValue['as_string']
         ? ValueInputOption.RAW
         : ValueInputOption.USER_ENTERED,

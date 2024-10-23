@@ -41,7 +41,7 @@ export const newOrUpdatedRowTrigger = createTrigger({
       value:
         'Please note that there might be a delay of up to 3 minutes for the trigger to be fired, due to a delay from Google.',
     }),
-    spreadsheet_id: googleSheetsCommon.spreadsheet_id,
+    spreadsheet_id: googleSheetsCommon.spreadsheet_id(),
     sheet_id: googleSheetsCommon.sheet_id,
     include_team_drives: googleSheetsCommon.include_team_drives,
     trigger_column: Property.Dropdown({
@@ -100,6 +100,10 @@ export const newOrUpdatedRowTrigger = createTrigger({
 
   async onEnable(context) {
     const spreadSheetId = context.propsValue.spreadsheet_id;
+    if(!spreadSheetId)
+    {
+      throw new Error('No spreadsheet found.');
+    }
     const sheetId = context.propsValue.sheet_id;
     const triggerColumn = context.propsValue.trigger_column ?? ALL_COLUMNS;
 
@@ -179,6 +183,10 @@ export const newOrUpdatedRowTrigger = createTrigger({
     }
 
     const spreadSheetId = context.propsValue.spreadsheet_id;
+    if(!spreadSheetId)
+    {
+      throw new Error('No spreadsheet found.');
+    }
     const sheetId = context.propsValue.sheet_id;
     const triggerColumn = context.propsValue.trigger_column ?? ALL_COLUMNS;
 
@@ -265,6 +273,10 @@ export const newOrUpdatedRowTrigger = createTrigger({
 
   async test(context) {
     const spreadSheetId = context.propsValue.spreadsheet_id;
+    if(!spreadSheetId)
+    {
+      throw new Error('No spreadsheet found.');
+    }
     const sheetId = context.propsValue.sheet_id;
 
     const sheetName = await getWorkSheetName(
@@ -291,6 +303,11 @@ export const newOrUpdatedRowTrigger = createTrigger({
     const webhook = await context.store.get<WebhookInformation>(
       `google-sheets-new-or-updated-row`
     );
+    const spreadSheetId = context.propsValue.spreadsheet_id
+    if(!spreadSheetId)
+    {
+      throw new Error('No spreadsheet found.');
+    }
     if (webhook != null && webhook.id != null && webhook.resourceId != null) {
       // delete current channel
       await deleteFileNotification(
@@ -300,7 +317,7 @@ export const newOrUpdatedRowTrigger = createTrigger({
       );
       const fileNotificationRes = await createFileNotification(
         context.auth,
-        context.propsValue.spreadsheet_id,
+        spreadSheetId,
         context.webhookUrl
       );
       // store channel response

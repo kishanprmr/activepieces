@@ -32,7 +32,7 @@ export const newRowAddedTrigger = createTrigger({
 			value:
 				'Please note that there might be a delay of up to 3 minutes for the trigger to be fired, due to a delay from Google.',
 		}),
-		spreadsheet_id: googleSheetsCommon.spreadsheet_id,
+		spreadsheet_id: googleSheetsCommon.spreadsheet_id(),
 		sheet_id: googleSheetsCommon.sheet_id,
 		include_team_drives: googleSheetsCommon.include_team_drives,
 	},
@@ -43,6 +43,10 @@ export const newRowAddedTrigger = createTrigger({
 	type: TriggerStrategy.WEBHOOK,
 	async onEnable(context) {
 		const { spreadsheet_id, sheet_id } = context.propsValue;
+		if(!spreadsheet_id)
+		{
+			throw new Error('No spreadsheet found.');
+		}
 
 		// fetch current sheet values
 		const sheetName = await getWorkSheetName(context.auth, spreadsheet_id, sheet_id);
@@ -78,6 +82,11 @@ export const newRowAddedTrigger = createTrigger({
 			return [];
 		}
 		const { spreadsheet_id, sheet_id } = context.propsValue;
+		if(!spreadsheet_id)
+			{
+				throw new Error('No spreadsheet found.');
+			}
+
 
 		// fetch old row count for worksheet
 		const oldRowCount = (await context.store.get(`${sheet_id}`)) as number;
@@ -120,12 +129,17 @@ export const newRowAddedTrigger = createTrigger({
 	async onRenew(context) {
 		// get current channel ID & resource ID
 		const webhook = await context.store.get<WebhookInformation>(`googlesheets_new_row_added`);
+		const {spreadsheet_id}=context.propsValue
+		if(!spreadsheet_id)
+			{
+				throw new Error('No spreadsheet found.');
+			}
 		if (webhook != null && webhook.id != null && webhook.resourceId != null) {
 			// delete current channel
 			await deleteFileNotification(context.auth, webhook.id, webhook.resourceId);
 			const fileNotificationRes = await createFileNotification(
 				context.auth,
-				context.propsValue.spreadsheet_id,
+				spreadsheet_id,
 				context.webhookUrl,
 			);
 			// store channel response
@@ -137,6 +151,10 @@ export const newRowAddedTrigger = createTrigger({
 	},
 	async test(context) {
 		const { spreadsheet_id, sheet_id } = context.propsValue;
+		if(!spreadsheet_id)
+			{
+				throw new Error('No spreadsheet found.');
+			}
 		const sheetName = await getWorkSheetName(context.auth, spreadsheet_id, sheet_id);
 		const currentSheetValues = await getWorkSheetValues(context.auth, spreadsheet_id, sheetName);
 
