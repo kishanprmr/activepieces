@@ -1,4 +1,8 @@
-import { Property, OAuth2PropertyValue } from '@activepieces/pieces-framework';
+import {
+  Property,
+  OAuth2PropertyValue,
+  DynamicPropsValue,
+} from '@activepieces/pieces-framework';
 import {
   Authentication,
   httpClient,
@@ -97,13 +101,26 @@ export const googleSheetsCommon = {
       };
     },
   }),
-  headersAsKeys: Property.Checkbox({
-    displayName: 'Use headers as Value Names',
-    description: 'Use headers as value names in the result (instead of A, B, C)',
+  as_string: Property.Checkbox({
+    displayName: 'As String',
+    description:
+      'Inserted values that are dates and formulas will be entered as strings and have no effect',
+    required: false,
+  }),
+  first_row_headers: Property.Checkbox({
+    displayName: 'Does the first row contain headers?',
+    description: 'If the first row is headers',
     required: true,
     defaultValue: false,
   }),
-  values: Property.DynamicProperties({
+  headersAsKeys: Property.Checkbox({
+    displayName: 'Use headers as Value Names',
+    description:
+      'Use headers as value names in the result (instead of A, B, C)',
+    required: true,
+    defaultValue: false,
+  }),
+  valuesForOneRow: Property.DynamicProperties({
     displayName: 'Values',
     description: 'The values to insert',
     required: true,
@@ -145,6 +162,53 @@ export const googleSheetsCommon = {
         });
       }
       return properties;
+    },
+  }),
+  valuesForMultipleRows: Property.DynamicProperties({
+    displayName: 'Values',
+    description: 'The values to insert.',
+    required: true,
+    refreshers: ['sheet_id', 'spreadsheet_id'],
+    props: async ({ auth, sheet_id, spreadsheet_id }) => {
+      if (
+        !auth ||
+        (spreadsheet_id ?? '').toString().length === 0 ||
+        (sheet_id ?? '').toString().length === 0
+      ) {
+        return {};
+      }
+
+      const fields: DynamicPropsValue = {};
+
+      const sheetId = Number(sheet_id);
+
+      const authentication = auth as OAuth2PropertyValue;
+      const values = await googleSheetsCommon.getValues(
+        spreadsheet_id as unknown as string,
+        getAccessTokenOrThrow(authentication),
+        sheetId
+      );
+
+      const firstRow = values?.[0]?.values ?? [];
+      const columns: {
+        [key: string]: any;
+      } = {};
+      for (const key in firstRow) {
+        columns[key] = Property.ShortText({
+          displayName: firstRow[key].toString(),
+          description: firstRow[key].toString(),
+          required: false,
+          defaultValue: '',
+        });
+      }
+
+      fields['values'] = Property.Array({
+        displayName: 'Values',
+        required: false,
+        properties: columns,
+      });
+
+      return fields;
     },
   }),
   columnName: Property.Dropdown<string>({
@@ -292,7 +356,9 @@ export async function getHeaders(params: {
     },
   };
 
-  const response = await httpClient.sendRequest<{ values: string[][] }>(request);
+  const response = await httpClient.sendRequest<{ values: string[][] }>(
+    request
+  );
 
   return response.body.values[0];
 }
@@ -326,7 +392,9 @@ export async function getGoogleSheetRows(params: {
   for (let i = 0; i < response.body.values.length; i++) {
     const values: any = {};
     for (let j = 0; j < response.body.values[i].length; j++) {
-      const key = params.headersAsKeys ? headers[j] || columnToLabel(j)  : columnToLabel(j);
+      const key = params.headersAsKeys
+        ? headers[j] || columnToLabel(j)
+        : columnToLabel(j);
       if (Object.prototype.hasOwnProperty.call(values, key)) {
         throw new Error(`Duplicate column name "${key}"`);
       }
@@ -506,11 +574,11 @@ export function objectToArray(obj: { [x: string]: any }) {
 
 export async function objectWithHeadersAsKeysToArray(
   headers: string[],
-  values: { [x: string]: any },
+  values: { [x: string]: any }
 ): Promise<string[]> {
   const arr = new Array(Object.keys(values).length);
   for (const key in values) {
-    const columnIndex = headers.findIndex(v => v == key)
+    const columnIndex = headers.findIndex((v) => v == key);
     if (columnIndex !== -1) arr[columnIndex] = values[key];
   }
 
