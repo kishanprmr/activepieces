@@ -1,5 +1,6 @@
 import { createPiece, PieceAuth } from '@activepieces/pieces-framework';
 import { PieceCategory } from '@activepieces/shared';
+import { createCandidateNoteAction } from './lib/actions/create-candidate-note';
 
 export const greenhouseAUth = PieceAuth.SecretText({
   displayName:'Harvest API Key',
@@ -14,6 +15,6 @@ export const greenhouse = createPiece({
 	logoUrl: 'https://cdn.activepieces.com/pieces/greenhouse.png',
   categories:[PieceCategory.HUMAN_RESOURCES],
 	authors: ['kishanprmr'],
-	actions: [],
+	actions: [createCandidateNoteAction],
 	triggers: [],
 });
