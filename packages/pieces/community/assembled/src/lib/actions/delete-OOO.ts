@@ -5,7 +5,7 @@ import { HttpMethod } from '@activepieces/pieces-common';
 export const deleteOOO = createAction({
   name: 'delete_OOO',
   displayName: 'Delete OOO',
-  description: 'Cancel/delete a OOO request',
+  description: 'Cancel/delete a OOO request.',
   props: {
     OOO_id: Property.ShortText({
       displayName: 'OOO ID',

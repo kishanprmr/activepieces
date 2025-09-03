@@ -5,7 +5,7 @@ import { HttpMethod } from '@activepieces/pieces-common';
 export const addShift = createAction({
   name: 'add_shift',
   displayName: 'Add Shift on Assembled',
-  description: 'Add a new shift to a user\'s schedule in Assembled',
+  description: 'Add a new shift to a user\'s schedule in Assembled.',
   props: {
     user_id: Property.ShortText({
       displayName: 'User ID',

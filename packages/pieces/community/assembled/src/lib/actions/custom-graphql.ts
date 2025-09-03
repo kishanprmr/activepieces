@@ -5,7 +5,7 @@ import { assembledAuth } from '../common/auth';
 export const customGraphql = createAction({
   name: 'custom_graphql',
   displayName: 'Custom GraphQL',
-  description: 'Perform a custom GraphQL query',
+  description: 'Perform a custom GraphQL query.',
   auth: assembledAuth,
   props: {
     query: Property.LongText({ displayName: 'Query', required: true }),
