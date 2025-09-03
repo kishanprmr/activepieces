@@ -1,7 +1,7 @@
 import { PieceAuth } from '@activepieces/pieces-framework';
 
 export const assembledAuth = PieceAuth.SecretText({
-  displayName: 'Assembled API Key',
-  description: 'Enter your Assembled API key (Bearer token)',
+  displayName: 'API Key',
+  description: `You can obtain your API key by navigating to [Settings](https://app.assembledhq.com/settings/api).`,
   required: true,
 });
