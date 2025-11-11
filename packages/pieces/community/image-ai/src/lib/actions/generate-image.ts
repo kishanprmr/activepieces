@@ -32,48 +32,48 @@ const getGeneratedImage = async ({
       feature: AIUsageFeature.IMAGE_AI,
     },
   });
-  if(providerName === 'google') {
-  const images = advancedOptions?.['image'] as Array<{ file: ApFile }> | undefined ?? [];
-  const imageFiles = images.map<ImagePart>(image => {
-    const fileType = image.file.extension ? mime.lookup(image.file.extension) : 'image/jpeg';
-    return {
-      type: 'image',
-      image: `data:${fileType};base64,${image.file.base64}`,
-    }
-  });
-  const result = await generateText({
-    //this casting is done on purpose for some reason to use the google models we need to use it this way https://ai-sdk.dev/cookbook/guides/google-gemini-image-generation#editing-images
-    model: model as LanguageModelV2,
-    providerOptions: {
-      google: { responseModalities: ['TEXT', 'IMAGE'] },
-    },
-      messages: [
-        {
-          role: 'user',
-          content: [
-            {
-              type: 'text',
-              text: prompt,
-            },
-            ...imageFiles,
-          ],
-        },
+  // if(providerName === 'google') {
+  // const images = advancedOptions?.['image'] as Array<{ file: ApFile }> | undefined ?? [];
+  // const imageFiles = images.map<ImagePart>(image => {
+  //   const fileType = image.file.extension ? mime.lookup(image.file.extension) : 'image/jpeg';
+  //   return {
+  //     type: 'image',
+  //     image: `data:${fileType};base64,${image.file.base64}`,
+  //   }
+  // });
+  // const result = await generateText({
+  //   //this casting is done on purpose for some reason to use the google models we need to use it this way https://ai-sdk.dev/cookbook/guides/google-gemini-image-generation#editing-images
+  //   model: model as LanguageModelV2,
+  //   providerOptions: {
+  //     google: { responseModalities: ['TEXT', 'IMAGE'] },
+  //   },
+  //     messages: [
+  //       {
+  //         role: 'user',
+  //         content: [
+  //           {
+  //             type: 'text',
+  //             text: prompt,
+  //           },
+  //           ...imageFiles,
+  //         ],
+  //       },
        
-      ]
-  });
-   const responseBody =  result.response.body && typeof result.response.body === 'object' && 'candidates' in result.response.body ? result.response.body : { candidates: [] };
-   const responseCandidates =  Array.isArray(responseBody?.candidates) ? responseBody?.candidates : [];
-   responseCandidates.forEach(candidate => {
-     if(candidate.finishReason !== 'STOP') {
-      throw new Error('Image generation failed Reason:\n ' + JSON.stringify(responseCandidates, null, 2));
-     }
-   })
-   if(isNil(result.files) || result.files.length === 0) {
-    throw new Error('No image generated');
-   }
-   return  result.files[0];
-   }
-   else{
+  //     ]
+  // });
+  //  const responseBody =  result.response.body && typeof result.response.body === 'object' && 'candidates' in result.response.body ? result.response.body : { candidates: [] };
+  //  const responseCandidates =  Array.isArray(responseBody?.candidates) ? responseBody?.candidates : [];
+  //  responseCandidates.forEach(candidate => {
+  //    if(candidate.finishReason !== 'STOP') {
+  //     throw new Error('Image generation failed Reason:\n ' + JSON.stringify(responseCandidates, null, 2));
+  //    }
+  //  })
+  //  if(isNil(result.files) || result.files.length === 0) {
+  //   throw new Error('No image generated');
+  //  }
+  //  return  result.files[0];
+  //  }
+  //  else{
     const response = await generateImage({
       model: model as ImageModelV2,
       prompt: prompt,
@@ -83,8 +83,9 @@ const getGeneratedImage = async ({
         },
       },
     });
+    console.log(JSON.stringify(response))
     return response.image;
-   }
+  //  }
 }
 
 export const generateImageAction = createAction({

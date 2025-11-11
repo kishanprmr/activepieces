@@ -183,20 +183,73 @@ export const aiProps = <T extends 'language' | 'image' | 'video'>({ modelType, f
                         }),
                     }
                 }
-                if(provider === 'google' && model.modelId === 'gemini-2.5-flash-image-preview') {
-                    options = {
-                        image: Property.Array({
-                            displayName: 'Images',
+                if(provider === 'google') {
+                    if(model.modelId === 'gemini-2.5-flash-image-preview'){
+                         options = {
+                            image: Property.Array({
+                                displayName: 'Images',
+                                required:false,
+                                properties: {
+                                    file: Property.File({
+                                        displayName: 'Image File',
+                                        required: true,
+                                    }),
+                                },
+                                description: 'The image(s) you want to edit/merge',
+                            })   
+                        }
+                   }
+                   if(model.modelId.startsWith('imagen-4.0'))
+                   {
+                    options={
+                        aspectRatio:Property.StaticDropdown({
+                            displayName:'Aspect Ratio',
                             required:false,
-                            properties: {
-                                file: Property.File({
-                                    displayName: 'Image File',
-                                    required: true,
-                                }),
-                            },
-                            description: 'The image(s) you want to edit/merge',
+                            options:{
+                                disabled:false,
+                                options:[
+                                    { label: "1:1", value: "1:1" },
+                                    { label: "3:4", value: "3:4" },
+                                    { label: "4:3", value: "4:3" },
+                                    { label: "9:16", value: "9:16" },
+                                    { label: "16:9", value: "16:9" }
+                                ]
+                            }
+                        }),
+                        personGeneration:Property.StaticDropdown({
+                            displayName:'Allow the model to generate images of people',
+                            required:false,
+                            options:{
+                                disabled:false,
+                                options:[
+                                    {label:'Block generation of images of people',value:'dont_allow'},
+                                    {label:' Generate images of adults, but not children',value:'allow_adult'},
+                                    {label:'Generate images that include adults and children',value:'allow_all'}
+                                ]
+                            }
                         })
-                }
+                    }
+                    if(model.modelId!=='imagen-4.0-fast-generate-001')
+                    {
+                        options = {
+                            ...options,
+                            imageSize:Property.StaticDropdown({
+                                displayName:'Image Size',
+                                description:'The size of the generated image',
+                                required:false,
+                                options:{
+                                    disabled:false,
+                                    options:[
+                                        {label:'1K',value:'1K'},
+                                        {label:'2K',value:'2K'}
+                                    ]
+                                }
+                            })
+                        }
+                    }
+
+                   }
+
             }
             } else if (modelType === 'video') {
                 if (provider === 'google') {

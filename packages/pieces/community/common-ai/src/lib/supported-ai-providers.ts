@@ -590,8 +590,24 @@ It is strongly recommended that you add your credit card information to your Ope
                 },
                 output: 30.0,
                 type: 'GPTImage1',
-            }
-        }],
+            },
+            },
+            {
+                displayName:'Gemini Imagen 4',
+                instance:google.image('imagen-4.0-generate-001'),
+                pricing:0.02
+            },
+            {
+                displayName:'Gemini Imagen 4 Ultra',
+                instance:google.image('imagen-4.0-ultra-generate-001'),
+                pricing:0.04
+            },
+            {
+                displayName:'Gemini Imagen 4 Fast',
+                instance:google.image('imagen-4.0-fast-generate-001'),
+                pricing:0.06
+            },
+        ],
         videoModels: [
             {
                 displayName: 'VEO 3.1 Preview',
