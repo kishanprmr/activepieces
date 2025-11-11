@@ -519,6 +519,20 @@ It is strongly recommended that you add your credit card information to your Ope
                 },
             },
             {
+                displayName: 'Gemini 2.5 Flash-Lite',
+                instance: google('gemini-2.5-flash-lite'),
+                functionCalling: true,
+                webSearchCost: 0.035,
+                pricing: {
+                    input: {
+                        default: 0.10,
+                        audio: 0.30,
+                    },
+                    output: 0.40,   
+                    type: 'categorized',
+                },
+            },
+            {
                 displayName: 'Gemini 2.5 Flash-Lite Preview',
                 instance: google('gemini-2.5-flash-lite-preview-06-17'),
                 functionCalling: true,
