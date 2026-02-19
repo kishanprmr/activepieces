@@ -45,7 +45,7 @@ export const findRecords = createAction({
           tableId: convertedTableId,
           context,
         });
- 
+
         return {
           filters: Property.Array({
             displayName: 'Filters',
@@ -73,6 +73,8 @@ export const findRecords = createAction({
                     { label: 'Less Than', value: FilterOperator.LT },
                     { label: 'Less Than or Equal', value: FilterOperator.LTE },
                     { label: 'Contains', value: FilterOperator.CO },
+                    { label: 'Exists', value: FilterOperator.EXISTS },
+                    { label: 'Does not Exist', value: FilterOperator.NOT_EXISTS }
                   ],
                 },
               }),

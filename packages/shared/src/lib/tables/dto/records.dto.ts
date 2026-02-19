@@ -31,6 +31,8 @@ export enum FilterOperator {
     LT = 'lt',
     LTE = 'lte',
     CO = 'co',
+    EXISTS = 'exists',
+    NOT_EXISTS = 'not_exists',
 }
 
 export const Filter = Type.Object({

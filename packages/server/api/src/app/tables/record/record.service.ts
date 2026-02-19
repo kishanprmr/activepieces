@@ -10,6 +10,7 @@ import {
     Field,
     Filter,
     FilterOperator,
+    isEmpty,
     isNil,
     PopulatedRecord,
     SeekPage,
@@ -116,7 +117,7 @@ export const recordService = {
                 return true
             }
 
-            const relevantCells = record.cells.filter(cell => 
+            const relevantCells = record.cells.filter(cell =>
                 filters.some(filter => filter.fieldId === cell.fieldId),
             )
 
@@ -491,6 +492,12 @@ function doesCellValueMatchFilters(cell: Cell, filters: Filter[]): boolean {
             return true
         }
         switch (filter.operator) {
+            case FilterOperator.EXISTS: {
+                return isEmpty(cell.value);
+            }
+            case FilterOperator.NOT_EXISTS: {
+                return !isEmpty(cell.value);
+            }
             case FilterOperator.EQ: {
                 return cell.value === filter.value
             }
