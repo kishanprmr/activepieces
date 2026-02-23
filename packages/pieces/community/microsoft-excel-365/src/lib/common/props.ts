@@ -1,8 +1,17 @@
 import { excelAuth } from '../../index';
-import { DropdownOption, Property } from '@activepieces/pieces-framework';
+import { DropdownOption, DynamicPropsValue, Property } from '@activepieces/pieces-framework';
 import { createMSGraphClient, getHeaders } from './helpers';
 import { PageCollection } from '@microsoft/microsoft-graph-client';
 import { Drive, DriveItem, Site } from '@microsoft/microsoft-graph-types';
+import { isEmpty } from '@activepieces/shared';
+
+const createEmptyOptions = (message: string) => {
+	return {
+		placeholder: message,
+		options: [],
+		disabled: true,
+	};
+};
 
 export const commonProps = {
 	storageSource: Property.StaticDropdown({
@@ -17,6 +26,12 @@ export const commonProps = {
 			],
 		},
 	}),
+	isFirstRowHeaders: Property.Checkbox({
+		displayName: 'Does the first row contain headers?',
+		description: 'If the first row is headers',
+		required: true,
+		defaultValue: false,
+	}),
 	siteId: Property.Dropdown({
 		displayName: 'Sharepoint Site',
 		auth: excelAuth,
@@ -24,18 +39,10 @@ export const commonProps = {
 		required: false,
 		options: async ({ auth, storageSource }) => {
 			if (!auth) {
-				return {
-					disabled: true,
-					options: [],
-					placeholder: 'please connect your account first.',
-				};
+				return createEmptyOptions('please connect your account first.');
 			}
 			if (storageSource !== 'sharepoint') {
-				return {
-					disabled: true,
-					options: [],
-					placeholder: 'please select sharepoint as file source.',
-				};
+				return createEmptyOptions('please select sharepoint as file source.');
 			}
 			const client = createMSGraphClient(auth.access_token);
 
@@ -69,26 +76,15 @@ export const commonProps = {
 		required: false,
 		options: async ({ auth, storageSource, siteId }) => {
 			if (!auth) {
-				return {
-					disabled: true,
-					options: [],
-					placeholder: 'please connect your account first.',
-				};
+				return createEmptyOptions('please connect your account first.');
 			}
+
 			if (storageSource !== 'sharepoint') {
-				return {
-					disabled: true,
-					options: [],
-					placeholder: 'please select sharepoint as file source.',
-				};
+				return createEmptyOptions('please select sharepoint as file source.');
 			}
 
 			if (!siteId) {
-				return {
-					disabled: true,
-					options: [],
-					placeholder: 'please select sharepoint site first.',
-				};
+				return createEmptyOptions('please select sharepoint site first.');
 			}
 
 			const client = createMSGraphClient(auth.access_token);
@@ -119,23 +115,17 @@ export const commonProps = {
 	}),
 	workbookId: Property.Dropdown({
 		displayName: 'Workbook',
-		refreshers: ['storageSource', 'siteId', 'docuemntId'],
+		refreshers: ['storageSource', 'siteId', 'documentId'],
 		required: true,
 		auth: excelAuth,
 		options: async ({ auth, storageSource, siteId, documentId }) => {
 			if (!auth) {
-				return {
-					disabled: true,
-					options: [],
-					placeholder: 'please connect your account first.',
-				};
+				return createEmptyOptions('please connect your account first.');
 			}
 			if (storageSource === 'sharepoint' && (!siteId || !documentId)) {
-				return {
-					disabled: true,
-					options: [],
-					placeholder: 'please select SharePoint site and document library first.',
-				};
+				return createEmptyOptions(
+					'please select SharePoint site and document library first.'
+				);
 			}
 
 			const client = createMSGraphClient(auth.access_token);
@@ -176,28 +166,19 @@ export const commonProps = {
 		refreshers: ['storageSource', 'siteId', 'documentId', 'workbookId'],
 		options: async ({ auth, storageSource, siteId, documentId, workbookId }) => {
 			if (!auth) {
-				return {
-					disabled: true,
-					options: [],
-					placeholder: 'please connect your account first.',
-				};
+				return createEmptyOptions('please connect your account first.');
 			}
 
 			if (!workbookId) {
-				return {
-					disabled: true,
-					options: [],
-					placeholder: 'please select a workbook first.',
-				};
+				return createEmptyOptions('please select a workbook first.');
 			}
 
 			if (storageSource === 'sharepoint' && (!siteId || !documentId)) {
-				return {
-					disabled: true,
-					options: [],
-					placeholder: 'please select SharePoint site and document library first.',
-				};
+				return createEmptyOptions(
+					'please select SharePoint site and document library first.'
+				);
 			}
+
 			const client = createMSGraphClient(auth.access_token);
 
 			const drivePath =
@@ -221,46 +202,109 @@ export const commonProps = {
 			};
 		},
 	}),
-	worksheetValues: Property.DynamicProperties({
-		auth: excelAuth,
-		displayName: 'Values',
-		description: 'The values to insert',
-		required: true,
-		refreshers: [
-			'storageSource',
-			'siteId',
-			'documentId',
-			'workbookId',
-			'worksheetId',
-			'isFirstRowHeaders',
-		],
-		props: async ({
-			auth,
-			storageSource,
-			siteId,
-			workbookId,
-			documentId,
-			worksheetId,
-			isFirstRowHeaders,
-		}) => {
-			if (
-				!auth ||
-				(workbookId ?? '').toString().length === 0 ||
-				(worksheetId ?? '').toString().length === 0
-			) {
-				return {};
-			}
+	worksheetValues: (isMultiValues = false) =>
+		Property.DynamicProperties({
+			auth: excelAuth,
+			displayName: 'Values',
+			description: 'The values to insert',
+			required: true,
+			refreshers: [
+				'storageSource',
+				'siteId',
+				'documentId',
+				'workbookId',
+				'worksheetId',
+				'isFirstRowHeaders',
+			],
+			props: async ({
+				auth,
+				storageSource,
+				siteId,
+				workbookId,
+				documentId,
+				worksheetId,
+				isFirstRowHeaders,
+			}) => {
+				if (
+					!auth ||
+					(workbookId ?? '').toString().length === 0 ||
+					(worksheetId ?? '').toString().length === 0
+				) {
+					return {};
+				}
 
-			if (storageSource === 'sharepoint' && (!siteId || !documentId)) return {};
+				if (storageSource === 'sharepoint' && (!siteId || !documentId)) return {};
 
-			if (!isFirstRowHeaders) {
-				return {
+				if (!isFirstRowHeaders) {
+					return {
+						values: Property.Array({
+							displayName: 'Values',
+							required: true,
+						}),
+					};
+				}
+
+				const drivePath =
+					storageSource === 'onedrive'
+						? '/me/drive'
+						: `/sites/${siteId}/drives/${documentId}`;
+
+				const firstRow = await getHeaders(
+					auth.access_token,
+					drivePath,
+					workbookId as unknown as string,
+					worksheetId as unknown as string
+				);
+
+				const columns: {
+					[key: string]: any;
+				} = {};
+				for (const key in firstRow) {
+					columns[key] = Property.ShortText({
+						displayName: firstRow[key].toString(),
+						description: firstRow[key].toString(),
+						required: false,
+						defaultValue: '',
+					});
+				}
+				if (!isMultiValues) return columns;
+
+				const fields: DynamicPropsValue = {
 					values: Property.Array({
 						displayName: 'Values',
 						required: true,
+						properties: columns,
 					}),
 				};
+
+				return fields;
+			},
+		}),
+
+	filterColumn: Property.Dropdown({
+		displayName: 'Filter Column',
+		refreshers: ['storageSource', 'siteId', 'documentId', 'workbookId', 'worksheetId'],
+		auth: excelAuth,
+		required: false,
+		async options({ auth, storageSource, siteId, workbookId, documentId, worksheetId }) {
+			if (!auth) {
+				return createEmptyOptions('please connect your account first.');
 			}
+
+			if (!workbookId) {
+				return createEmptyOptions('please select a workbook first.');
+			}
+			if (!worksheetId) {
+				return createEmptyOptions('please select a worksheet first.');
+			}
+
+			if (storageSource === 'sharepoint' && (!siteId || !documentId)) {
+				return createEmptyOptions(
+					'please select SharePoint site and document library first.'
+				);
+			}
+
+			const client = createMSGraphClient(auth.access_token);
 
 			const drivePath =
 				storageSource === 'onedrive'
@@ -274,18 +318,17 @@ export const commonProps = {
 				worksheetId as unknown as string
 			);
 
-			const properties: {
-				[key: string]: any;
-			} = {};
+			const options: DropdownOption<string>[] = [];
+
 			for (const key in firstRow) {
-				properties[key] = Property.ShortText({
-					displayName: firstRow[key].toString(),
-					description: firstRow[key].toString(),
-					required: false,
-					defaultValue: '',
-				});
+				if (isEmpty(firstRow[key])) continue;
+				options.push({ value: key, label: firstRow[key].toString() });
 			}
-			return properties;
+
+			return {
+				disabled: false,
+				options,
+			};
 		},
 	}),
 };

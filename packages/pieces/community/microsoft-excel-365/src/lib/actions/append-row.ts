@@ -16,13 +16,8 @@ export const appendRowAction = createAction({
 		documentId: commonProps.documentId,
 		workbookId: commonProps.workbookId,
 		worksheetId: commonProps.worksheetId,
-		isFirstRowHeaders: Property.Checkbox({
-			displayName: 'Does the first row contain headers?',
-			description: 'If the first row is headers',
-			required: true,
-			defaultValue: false,
-		}),
-		values: commonProps.worksheetValues,
+		isFirstRowHeaders: commonProps.isFirstRowHeaders,
+		values: commonProps.worksheetValues(),
 	},
 	async run({ propsValue, auth }) {
 		const { workbookId, worksheetId, storageSource, siteId, documentId } = propsValue;

@@ -37,10 +37,10 @@ import { newWorksheetTrigger } from './lib/trigger/new-worksheet';
 import { updatedRowTrigger } from './lib/trigger/updated-row';
 
 import { appendMultipleRowsAction } from './lib/actions/append-multiple-rows';
-import { excelCommon } from './lib/common/common';
-import { getWorksheetColumnsAction } from './lib/actions/get-wroksheet-columns';
 import { findWorkbookAction } from './lib/actions/find-workbooks';
 import { findWorksheetAction } from './lib/actions/find-worksheets';
+import { getWorksheetColumnsAction } from './lib/actions/get-wroksheet-columns';
+import { excelCommon } from './lib/common/common';
 
 const authDesc = `
 1. Sign in to [Microsoft Azure Portal](https://portal.azure.com/).
@@ -62,8 +62,9 @@ const authDesc = `
   - Click **Add a permission**.
   - Select **Microsoft Graph** → **Delegated permissions**.
   - Add the following scopes:
-    - Files.ReadWrite
+    - Files.ReadWrite.All
     - offline_access
+	- Sites.ReadWrite.All
     - Click **Add permissions**.
 12. Copy your **Client ID** and **Client Secret**.
 `;
@@ -73,7 +74,7 @@ export const excelAuth = PieceAuth.OAuth2({
 	authUrl: 'https://login.microsoftonline.com/common/oauth2/v2.0/authorize',
 	tokenUrl: 'https://login.microsoftonline.com/common/oauth2/v2.0/token',
 	required: true,
-	scope: ['Files.ReadWrite', 'offline_access'],
+	scope: ['Files.ReadWrite.All', 'offline_access', 'Sites.ReadWrite.All'],
 	prompt: 'omit',
 });
 
